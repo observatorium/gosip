@@ -1,0 +1,11 @@
+# github.com/abbot/go-http-auth v0.4.0
+github.com/abbot/go-http-auth
+# github.com/ghodss/yaml v1.0.0
+github.com/ghodss/yaml
+# golang.org/x/crypto v0.0.0-20181126144156-c05539cddb59
+golang.org/x/crypto/bcrypt
+golang.org/x/crypto/blowfish
+# golang.org/x/net v0.0.0-20181114220301-adae6a3d119a
+golang.org/x/net/context
+# gopkg.in/yaml.v2 v2.2.1
+gopkg.in/yaml.v2
