@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -39,14 +38,17 @@ func Main() int {
 	mux := http.NewServeMux()
 
 	db := users.NewStaticUsersDatabase(c.Users)
-	a := auth.NewAuthHandler(db)
+	auth := auth.NewHandler(db)
 	ui := ui.New()
 
-	mux.Handle("/prometheus", a.TokenAuth(httputil.NewSingleHostReverseProxy(promURL)))
-	mux.Handle("/jaeger", a.TokenAuth(httputil.NewSingleHostReverseProxy(jaegerURL)))
-	mux.Handle("/", a.BasicAuth(ui))
+	mux.Handle("/prometheus", auth.Token(httputil.NewSingleHostReverseProxy(promURL)))
+	mux.Handle("/jaeger", auth.Token(httputil.NewSingleHostReverseProxy(jaegerURL)))
+	mux.Handle("/", auth.Basic(ui))
 
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	if err := http.ListenAndServe(":8080", mux); err != nil {
+		fmt.Println("Failed to run server:", err)
+		return 2
+	}
 
 	return 0
 }

@@ -4,17 +4,17 @@ import (
 	"net/http"
 	"strings"
 
-	auth "github.com/abbot/go-http-auth"
 	"github.com/Go-SIP/gosip/users"
+	"github.com/abbot/go-http-auth"
 )
 
-type AuthHandler interface {
-	BasicAuth(h http.Handler) http.Handler
-	TokenAuth(h http.Handler) http.Handler
+type UserDatabase interface {
+	GetByUsername(username string) (users.User, error)
+	GetByToken(token string) (users.User, error)
 }
 
-type authHandler struct {
-	db                 users.UserDatabase
+type Handler struct {
+	users              UserDatabase
 	basicAuthenticator auth.AuthenticatorInterface
 	tokenAuthenticator auth.AuthenticatorInterface
 }
@@ -27,15 +27,16 @@ func authenticatedHandler(a auth.AuthenticatorInterface, h http.Handler) http.Ha
 	})
 }
 
-func NewAuthHandler(db users.UserDatabase) AuthHandler {
-	ah := &authHandler{db: db}
-	basicAuthenticator := auth.NewBasicAuthenticator("example.com", ah.usernamePassword)
-	ah.basicAuthenticator = basicAuthenticator
+func NewHandler(users UserDatabase) *Handler {
+	ah := &Handler{users: users}
+
+	ah.basicAuthenticator = auth.NewBasicAuthenticator("example.com", ah.usernamePassword)
+
 	return ah
 }
 
-func (ah *authHandler) usernamePassword(username, realm string) string {
-	user, err := ah.db.GetByUsername(username)
+func (ah *Handler) usernamePassword(username, realm string) string {
+	user, err := ah.users.GetByUsername(username)
 	if err != nil {
 		return ""
 	}
@@ -43,7 +44,7 @@ func (ah *authHandler) usernamePassword(username, realm string) string {
 	return user.Password()
 }
 
-func (ah *authHandler) BasicAuth(h http.Handler) http.Handler {
+func (ah *Handler) Basic(h http.Handler) http.Handler {
 	return authenticatedHandler(
 		ah.basicAuthenticator,
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +59,7 @@ func (ah *authHandler) BasicAuth(h http.Handler) http.Handler {
 		}))
 }
 
-func (ah *authHandler) TokenAuth(h http.Handler) http.Handler {
+func (ah *Handler) Token(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenHeader := r.Header.Get("Authorization")
 		splitHeader := strings.Split(tokenHeader, "Bearer")
@@ -68,7 +69,7 @@ func (ah *authHandler) TokenAuth(h http.Handler) http.Handler {
 		}
 		token := splitHeader[1]
 
-		_, err := ah.db.GetByToken(token)
+		_, err := ah.users.GetByToken(token)
 		if err != nil {
 			http.Error(w, "Unauthorized.", 401)
 			return

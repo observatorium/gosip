@@ -4,17 +4,16 @@ import (
 	"fmt"
 	"net/http"
 
-	auth "github.com/abbot/go-http-auth"
+	"github.com/abbot/go-http-auth"
 )
 
-type ui struct {
+type UI struct{}
+
+func New() *UI {
+	return &UI{}
 }
 
-func New() *ui {
-	return &ui{}
-}
-
-func (u *ui) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (u *UI) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	info := auth.FromContext(r.Context())
 	fmt.Fprintf(w, "<html><body><h1>Successfully Authenticated %s!</h1></body></html>", info.Username)
 }
