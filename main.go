@@ -6,9 +6,11 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/Go-SIP/gosip/auth"
 	"github.com/Go-SIP/gosip/config"
+	"github.com/Go-SIP/gosip/tenant"
 	"github.com/Go-SIP/gosip/ui"
 	"github.com/Go-SIP/gosip/users"
 )
@@ -23,32 +25,49 @@ func Main() int {
 		fmt.Println("Failed to load config:", err)
 		return 1
 	}
-	promURL, err := url.Parse(c.Prometheus.URL)
-	if err != nil {
-		fmt.Println("Failed to parse Prometheus URL:", err)
-		return 1
-	}
 
-	jaegerURL, err := url.Parse(c.Jaeger.URL)
+	tenantsIndex, err := config.Tenants(c)
 	if err != nil {
-		fmt.Println("Failed to parse Jaeger URL:", err)
+		fmt.Println("failed to parse tenants:", err)
 		return 1
 	}
+	tenants := tenant.NewStatic(tenantsIndex)
+
+	users := users.NewStaticUsersDatabase(c.Users)
+	auth := auth.NewHandler(users)
 
 	mux := http.NewServeMux()
+	mux.Handle("/prometheus/", auth.Token(NewPrometheusReverseProxy(tenants)))
+	//mux.Handle("/jaeger", auth.Token(httputil.NewSingleHostReverseProxy(jaegerURL)))
+	mux.Handle("/", auth.Basic(ui.New()))
 
-	db := users.NewStaticUsersDatabase(c.Users)
-	auth := auth.NewHandler(db)
-	ui := ui.New()
-
-	mux.Handle("/prometheus", auth.Token(httputil.NewSingleHostReverseProxy(promURL)))
-	mux.Handle("/jaeger", auth.Token(httputil.NewSingleHostReverseProxy(jaegerURL)))
-	mux.Handle("/", auth.Basic(ui))
-
+	fmt.Println("Running server on :8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		fmt.Println("Failed to run server:", err)
 		return 2
 	}
 
 	return 0
+}
+
+type TenantPrometheus interface {
+	PrometheusURL(username string) (*url.URL, error)
+}
+
+func NewPrometheusReverseProxy(tenants TenantPrometheus) *httputil.ReverseProxy {
+	director := func(r *http.Request) {
+		username := auth.Username(r.Context())
+		prometheusURL, err := tenants.PrometheusURL(username)
+		if err != nil {
+			panic(err) // TODO
+		}
+
+		r.URL.Scheme = prometheusURL.Scheme
+		r.URL.Host = prometheusURL.Host
+		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/prometheus") // remove /prometheus prefix
+	}
+
+	return &httputil.ReverseProxy{
+		Director: director,
+	}
 }
