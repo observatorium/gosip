@@ -14,7 +14,7 @@ type StaticUserEntry struct {
 	user *config.User
 }
 
-func NewStaticUsersDatabase(configuredUsers []*config.User) UserDatabase {
+func NewStaticUsersDatabase(configuredUsers []*config.User) *StaticUsersDatabase {
 	nameIndex := make(map[string]*config.User, len(configuredUsers))
 	tokenIndex := make(map[string]*config.User, len(configuredUsers))
 
