@@ -72,7 +72,7 @@ func (ah *Handler) Token(h http.Handler) http.Handler {
 			http.Error(w, "Bad request.", 400)
 			return
 		}
-		token := splitHeader[1]
+		token := strings.TrimSpace(splitHeader[1])
 
 		user, err := ah.users.GetByToken(token)
 		if err != nil {
