@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"net/http"
 	"strings"
 
@@ -59,6 +60,10 @@ func (ah *Handler) Basic(h http.Handler) http.Handler {
 		}))
 }
 
+type username string
+
+var authUsername username = "username"
+
 func (ah *Handler) Token(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenHeader := r.Header.Get("Authorization")
@@ -69,12 +74,19 @@ func (ah *Handler) Token(h http.Handler) http.Handler {
 		}
 		token := splitHeader[1]
 
-		_, err := ah.users.GetByToken(token)
+		user, err := ah.users.GetByToken(token)
 		if err != nil {
 			http.Error(w, "Unauthorized.", 401)
 			return
 		}
 
+		ctx := context.WithValue(r.Context(), authUsername, user.Name())
+		r = r.WithContext(ctx)
+
 		h.ServeHTTP(w, r)
 	})
+}
+
+func Username(ctx context.Context) string {
+	return ctx.Value(authUsername).(string)
 }
