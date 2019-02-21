@@ -1,18 +1,18 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"os"
-	"strings"
 
 	"github.com/Go-SIP/gosip/auth"
 	"github.com/Go-SIP/gosip/config"
+	"github.com/Go-SIP/gosip/proxy"
 	"github.com/Go-SIP/gosip/tenant"
 	"github.com/Go-SIP/gosip/ui"
 	"github.com/Go-SIP/gosip/users"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -26,18 +26,18 @@ func Main() int {
 		return 1
 	}
 
-	tenantsIndex, err := config.Tenants(c)
+	db, err := sql.Open("postgres", c.Database.DSN)
 	if err != nil {
-		fmt.Println("failed to parse tenants:", err)
+		fmt.Println("failed to open database:", err)
 		return 1
 	}
-	tenants := tenant.NewStatic(tenantsIndex)
 
-	users := users.NewStaticUsersDatabase(c.Users)
+	tenants := tenant.NewPostgres(db)
+	users := users.NewPostgres(db)
 	auth := auth.NewHandler(users)
 
 	mux := http.NewServeMux()
-	mux.Handle("/prometheus/", auth.Token(NewPrometheusReverseProxy(tenants)))
+	mux.Handle("/prometheus/", auth.Token(proxy.NewPrometheus(tenants)))
 	//mux.Handle("/jaeger", auth.Token(httputil.NewSingleHostReverseProxy(jaegerURL)))
 	mux.Handle("/", auth.Basic(ui.New()))
 
