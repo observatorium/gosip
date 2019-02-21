@@ -1,11 +1,12 @@
-prometheus:
-  url: "http://localhost:19291/"
-jaeger:
-  url: "http://localhost:19291/"
 tenants:
 - id: "sochi2EiSiGequ9ubaeph9gi1aip8ahx9Oa8caephiugibee1eeR7itee0ahyoGh"
   users:
   - "test-user"
+  prometheus:
+    url: "http://localhost:9090/"
+  jaeger:
+    url: "http://localhost:19291/"
+
 users:
 - username: "test-user"
   # bcrypt hash of "test"
