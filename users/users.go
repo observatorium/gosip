@@ -7,7 +7,7 @@ var (
 )
 
 type User interface {
-	Name() string
+	Username() string
 	Token() string
 	Password() string
 }

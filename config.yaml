@@ -1,3 +1,6 @@
+database:
+  dsn: 'postgres://postgres:postgres@localhost:5432?sslmode=disable'
+
 tenants:
 - id: "sochi2EiSiGequ9ubaeph9gi1aip8ahx9Oa8caephiugibee1eeR7itee0ahyoGh"
   users:

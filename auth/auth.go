@@ -80,7 +80,7 @@ func (ah *Handler) Token(h http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), authUsername, user.Name())
+		ctx := context.WithValue(r.Context(), authUsername, user.Username())
 		r = r.WithContext(ctx)
 
 		h.ServeHTTP(w, r)

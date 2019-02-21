@@ -48,7 +48,7 @@ func (d *StaticUsersDatabase) GetByToken(token string) (User, error) {
 	return &StaticUserEntry{user: u}, nil
 }
 
-func (u *StaticUserEntry) Name() string {
+func (u *StaticUserEntry) Username() string {
 	return u.user.Username
 }
 

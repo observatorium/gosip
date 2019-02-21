@@ -10,8 +10,13 @@ import (
 )
 
 type Config struct {
-	Tenants []*Tenant `json:"tenants"`
-	Users   []*User   `json:"users"`
+	Database database  `json:"database"`
+	Tenants  []*Tenant `json:"tenants"`
+	Users    []*User   `json:"users"`
+}
+
+type database struct {
+	DSN string `json:"dsn"`
 }
 
 type User struct {
