@@ -40,7 +40,7 @@ b8501716-4d8a-4bf8-a2e9-25a147bfe105	test1	$2a$10$cYL1eYqDVTjlF33ZHryl8OZxAo5iQw
 --
 
 COPY public.tenants_users (tenant_id, user_id) FROM stdin;
-139df444-9839-448f-8d7f-98cb865286a1	8e0016dd-5bec-470c-a26f-5e13b988801a
+139df444-9839-448f-8d7f-98cb865286a1	b8501716-4d8a-4bf8-a2e9-25a147bfe105
 \.
 
 
