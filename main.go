@@ -49,25 +49,3 @@ func Main() int {
 
 	return 0
 }
-
-type TenantPrometheus interface {
-	PrometheusURL(username string) (*url.URL, error)
-}
-
-func NewPrometheusReverseProxy(tenants TenantPrometheus) *httputil.ReverseProxy {
-	director := func(r *http.Request) {
-		username := auth.Username(r.Context())
-		prometheusURL, err := tenants.PrometheusURL(username)
-		if err != nil {
-			panic(err) // TODO
-		}
-
-		r.URL.Scheme = prometheusURL.Scheme
-		r.URL.Host = prometheusURL.Host
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/prometheus") // remove /prometheus prefix
-	}
-
-	return &httputil.ReverseProxy{
-		Director: director,
-	}
-}
