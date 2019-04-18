@@ -1,12 +1,13 @@
 package auth
 
 import (
-	"context"
 	"net/http"
 	"strings"
 
+	auth "github.com/abbot/go-http-auth"
+
+	"github.com/Go-SIP/gosip/context"
 	"github.com/Go-SIP/gosip/users"
-	"github.com/abbot/go-http-auth"
 )
 
 type UserDatabase interface {
@@ -60,10 +61,6 @@ func (ah *Handler) Basic(h http.Handler) http.Handler {
 		}))
 }
 
-type username string
-
-var authUsername username = "username"
-
 func (ah *Handler) Token(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenHeader := r.Header.Get("Authorization")
@@ -80,13 +77,6 @@ func (ah *Handler) Token(h http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), authUsername, user.Username())
-		r = r.WithContext(ctx)
-
-		h.ServeHTTP(w, r)
+		h.ServeHTTP(w, r.WithContext(context.WithUsername(r.Context(), user.Username())))
 	})
-}
-
-func Username(ctx context.Context) string {
-	return ctx.Value(authUsername).(string)
 }

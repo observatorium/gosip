@@ -1,13 +1,12 @@
 package proxy
 
 import (
-	"context"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
 
-	"github.com/Go-SIP/gosip/auth"
+	"github.com/Go-SIP/gosip/context"
 )
 
 type TenantPrometheus interface {
@@ -15,11 +14,11 @@ type TenantPrometheus interface {
 }
 
 func NewPrometheus(tenants TenantPrometheus) http.HandlerFunc {
-	type promURL string
-	var promKey promURL
-
 	director := func(r *http.Request) {
-		prometheusURL := r.Context().Value(promKey).(*url.URL)
+		prometheusURL, err := context.PrometheusURLFromContext(r.Context())
+		if err != nil {
+			return
+		}
 
 		r.URL.Scheme = prometheusURL.Scheme
 		r.URL.Host = prometheusURL.Host
@@ -28,20 +27,21 @@ func NewPrometheus(tenants TenantPrometheus) http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		username := auth.Username(r.Context())
+		username, err := context.UsernameFromContext(r.Context())
+		if err != nil {
+			http.Error(w, `{"message": "failed to identify username"}`, http.StatusUnauthorized)
+			return
+		}
+
 		prometheusURL, err := tenants.PrometheusURL(username)
 		if err != nil {
-
 			http.Error(w, `{"message": "failed to get Prometheus URL for tenant"}`, http.StatusBadRequest)
 			return
 		}
 
-		// Put the upstream PrometheusURL into the request's context for the director
-		r = r.WithContext(context.WithValue(r.Context(), promKey, prometheusURL))
-
 		proxy := &httputil.ReverseProxy{
 			Director: director,
 		}
-		proxy.ServeHTTP(w, r)
+		proxy.ServeHTTP(w, r.WithContext(context.WithPrometheusURL(r.Context(), prometheusURL)))
 	}
 }
