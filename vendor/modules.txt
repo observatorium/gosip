@@ -2,6 +2,13 @@
 github.com/abbot/go-http-auth
 # github.com/ghodss/yaml v1.0.0
 github.com/ghodss/yaml
+# github.com/go-chi/chi v4.0.2+incompatible
+github.com/go-chi/chi
+# github.com/lib/pq v1.0.0
+github.com/lib/pq
+github.com/lib/pq/oid
+# github.com/pkg/errors v0.8.1
+github.com/pkg/errors
 # golang.org/x/crypto v0.0.0-20181126144156-c05539cddb59
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blowfish

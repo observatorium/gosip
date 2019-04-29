@@ -12,6 +12,8 @@ import (
 	"github.com/Go-SIP/gosip/tenant"
 	"github.com/Go-SIP/gosip/ui"
 	"github.com/Go-SIP/gosip/users"
+
+	"github.com/go-chi/chi"
 	_ "github.com/lib/pq"
 )
 
@@ -36,13 +38,19 @@ func Main() int {
 	users := users.NewPostgres(db)
 	auth := auth.NewHandler(users)
 
-	mux := http.NewServeMux()
-	mux.Handle("/prometheus/", auth.Token(proxy.NewPrometheus(tenants)))
-	//mux.Handle("/jaeger", auth.Token(httputil.NewSingleHostReverseProxy(jaegerURL)))
-	mux.Handle("/", auth.Basic(ui.New()))
+	r := chi.NewRouter()
+	r.Route("/prometheus", func(r chi.Router) {
+		r.Use(auth.Token)
+		r.Handle("/", proxy.NewPrometheus(tenants))
+	})
+	// r.Handle("/jaeger", auth.Token(httputil.NewSingleHostReverseProxy(jaegerURL)))
+	r.Route("/", func(r chi.Router) {
+		r.Use(auth.Basic)
+		r.Handle("/", ui.New())
+	})
 
 	fmt.Println("Running server on :8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServe(":8080", r); err != nil {
 		fmt.Println("Failed to run server:", err)
 		return 2
 	}
