@@ -21,7 +21,7 @@ func (p *Postgres) PrometheusURL(username string) (*url.URL, error) {
 SELECT tenants.prometheus FROM tenants
 LEFT JOIN tenants_users tu ON tenants.id = tu.tenant_id
 LEFT JOIN users ON tu.user_id = users.id
-WHERE users.name = $1
+WHERE users.username = $1
 `
 	row := p.db.QueryRowContext(context.TODO(), query, username)
 

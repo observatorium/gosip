@@ -30,8 +30,8 @@ COPY public.tenants (id, prometheus, jaeger) FROM stdin;
 --
 
 COPY public.users (id, username, password, token) FROM stdin;
-8e0016dd-5bec-470c-a26f-5e13b988801a	test2	$2a$10$mAgmPdb5I5T7g12MXs3q3OMKlymnhmh4NTrH8jH8vIyE.9CoBJP5C	5fb17a96-3e38-4211-963a-03d43583fe6d
-b8501716-4d8a-4bf8-a2e9-25a147bfe105	test1	$2a$10$cYL1eYqDVTjlF33ZHryl8OZxAo5iQwBGwRJ7OB7d6dJ2tjWbrbT9K	acfa769b-f2a9-4fb8-8fd3-9d8337159d46
+8e0016dd-5bec-470c-a26f-5e13b988801a	test2	$2y$10$Rb6YrKoQtpzEoYQiik2RAe/3Irfk0iCpv2CvptvdduaUnpH0mET6y	5fb17a96-3e38-4211-963a-03d43583fe6d
+b8501716-4d8a-4bf8-a2e9-25a147bfe105	test1	$2y$10$AnskbYwIgFvI1K0tSrUSX.IKOToMIz1mA.s9W5QOH0k8/7Jg6knGW	acfa769b-f2a9-4fb8-8fd3-9d8337159d46
 \.
 
 

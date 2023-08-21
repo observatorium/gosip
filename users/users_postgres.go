@@ -36,7 +36,7 @@ func (u postgresUser) Password() string {
 
 func (p *Postgres) GetByUsername(username string) (User, error) {
 	row := p.db.QueryRowContext(context.TODO(),
-		`SELECT id, username, token, password FROM users WHERE name = $1 LIMIT 1`,
+		`SELECT id, username, token, password FROM users WHERE username = $1 LIMIT 1`,
 		username,
 	)
 
@@ -54,7 +54,7 @@ func (p *Postgres) GetByUsername(username string) (User, error) {
 
 func (p *Postgres) GetByToken(token string) (User, error) {
 	row := p.db.QueryRowContext(context.TODO(),
-		`SELECT id, name, token,password FROM users WHERE token = $1`,
+		`SELECT id, username, token, password FROM users WHERE token = $1`,
 		token,
 	)
 
